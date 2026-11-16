@@ -1,0 +1,33 @@
+services:
+  db:
+    image: postgres:16
+    environment: { POSTGRES_USER: admin, POSTGRES_PASSWORD: admin_pw, POSTGRES_DB: shop }
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d shop"]
+      interval: 3s
+      retries: 20
+  redis:
+    image: redis:7-alpine
+  backend:
+    build: ./backend
+    env_file: .env
+    environment:
+      DATABASE_URL_RO: postgresql+psycopg://bi_readonly:readonly_pw@db:5432/shop
+      DATABASE_URL_ADMIN: postgresql://admin:admin_pw@db:5432/shop
+      REDIS_URL: redis://redis:6379/0
+    volumes: [hfcache:/root/.cache/huggingface]
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_started }
+    ports: ["8000:8000"]
+  frontend:
+    build: ./frontend
+    environment: { API_TARGET: "http://backend:8000" }
+    depends_on: [backend]
+    ports: ["5173:5173"]
+volumes:
+  pgdata:
+  hfcache:

@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+sqlalchemy>=2
+psycopg[binary,pool]
+sqlglot
+langgraph
+langgraph-checkpoint-postgres
+langchain-openai
+pydantic>=2
+pyjwt
+redis
+numpy
+sentence-transformers
+openpyxl
+reportlab
+matplotlib
